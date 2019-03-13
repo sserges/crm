@@ -1,9 +1,7 @@
 import React, { Component } from "react";
 import "./App.css";
 
-import firebase from "firebase";
-
-import data from "../data.json";
+import firebase from "../firebase";
 
 import Grid from "./Grid";
 import Form from "./Form";
@@ -11,19 +9,42 @@ import Form from "./Form";
 class App extends Component {
   constructor(props) {
     super(props);
-    this.state = { data };
+    this.state = { contacts: [] };
+  }
+
+  updateData() {
+    const db = firebase.firestore();
+    // const settings = { timestampsInSnapshots: true };
+    // db.settings(settings);
+
+    db.collection("contacts")
+      .get()
+      .then(snapshot => {
+        let contacts = [];
+        snapshot.forEach(doc => {
+          let contact = Object.assign({ id: doc.id }, doc.data());
+          contacts.push(contact);
+        });
+
+        this.setState({ contacts });
+      })
+      .catch(err => {
+        console.log("Erreur!", err);
+      });
+  }
+
+  deleteData(docID) {
+    const db = firebase.firestore();
+    db.collection("contacts")
+      .doc(docID)
+      .delete();
+    this.updateData();
   }
 
   componentWillMount() {
-    firebase.initializeApp({
-      apiKey: "AIzaSyBp6VcgU82Pg9jdctPnp5hYDd5CJxhg-W4",
-      authDomain: "crm-linkedin-a8c64.firebaseapp.com",
-      databaseURL: "https://crm-linkedin-a8c64.firebaseio.com",
-      projectId: "crm-linkedin-a8c64",
-      storageBucket: "crm-linkedin-a8c64.appspot.com",
-      messagingSenderId: "909975699691"
-    });
+    this.updateData();
   }
+
   render() {
     return (
       <div>
@@ -37,8 +58,11 @@ class App extends Component {
           </nav>
         </div>
         <div>
-          <Form />
-          <Grid items={this.state.data} />
+          <Form updateData={this.updateData.bind(this)} />
+          <Grid
+            items={this.state.contacts}
+            deleteData={this.deleteData.bind(this)}
+          />
         </div>
       </div>
     );

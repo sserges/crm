@@ -20,6 +20,14 @@ const Single = props => {
             </div>
           </div>
         </div>
+        <div className="card-action">
+          <button
+            className="waves-effect waves-light btn red darken-4"
+            onClick={props.deleteData.bind(this, props.item.id)}
+          >
+            Supprimer
+          </button>
+        </div>
       </div>
     </li>
   );
